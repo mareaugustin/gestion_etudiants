@@ -83,8 +83,7 @@ const EtudiantController = {
 
                 return res.status(200).json({
                     success: true,
-                    data: listes,
-                    total: listes.length
+                    data: listes
                 })
             })
         })
