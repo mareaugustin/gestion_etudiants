@@ -74,21 +74,6 @@ export default function Home({navigation}){
     const TotalHomme = Homme.length || 0
     const TotalFemme = Femme.length || 0
 
-    useEffect(()=>{
-        if(TotalEtudiant){
-            AsyncStorage.setItem('total', JSON.stringify(TotalEtudiant))
-        }else{return}
-
-        if(TotalHomme){
-            AsyncStorage.setItem('totalHomme', JSON.stringify(TotalHomme))
-        }else{return}
-        if(TotalFemme){
-            AsyncStorage.setItem('totalFemme', JSON.stringify(TotalFemme))
-        }else{return}
-
-    }, [TotalEtudiant, TotalHomme, TotalFemme])
-    
-
 
     
 

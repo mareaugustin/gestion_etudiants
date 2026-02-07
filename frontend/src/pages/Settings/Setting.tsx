@@ -4,41 +4,56 @@ import Header from "../../components/common/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icone from "../../components/common/Icon";
 import TextComponent from "../../components/common/TextComponent";
+import { useGet } from "../../hooks/useGet";
+import { useFocusEffect } from "@react-navigation/native";
+import Loader from "../../components/common/Loading";
 
 export default function Setting(){
-    const [total, setTotal] = useState(null)
-    const [totalHomme, setTotalHomme] = useState(null)
-    const [totalFemme, setTotalFemme] = useState(null)
 
+    const [email, setEmail] = useState(null)
+    
     useEffect(()=>{
-        async function Caracteristique() {
-            try {
-                const total = await AsyncStorage.getItem('total')
-                const totalHomme = await AsyncStorage.getItem('totalHomme')
-                const totalFemme = await AsyncStorage.getItem('totalFemme')
-
-                if(total){
-                    Number(setTotal(total))
+        async function getEmail(){
+            try{
+                const emailSaved = await AsyncStorage.getItem('email')
+                if(emailSaved){
+                    setEmail(emailSaved)
                 }
-                if(totalHomme){
-                    Number(setTotalHomme(totalHomme))
-                }
-                if(totalFemme){
-                    Number(setTotalFemme(totalFemme))
-                }
-            } catch (error) {
-                
-            }
+            }catch(e){}
         }
 
-        Caracteristique()
-    }, [total, totalFemme, totalHomme])
+        getEmail()
+    }, [])
+
+    const {loading, error, data, getData} = useGet(`/total/${email}`)
+
+
+    useFocusEffect(
+        useCallback(()=>{
+            if(email){
+                getData()
+            }
+        }, [email])
+
+        
+    )
+
+
+    const total = data?.total ?? 0
+    const totalHomme = data?.totalHomme ?? 0
+    const totalFemme = data?.totalFemme ?? 0
 
 
     const percentHomme = total ? Math.round((totalHomme * 100) / total) : 0
-    const percentFemme = total ? Math.round((totalFemme * 100) / total) : 0
+    const percentFemme = total ? Math.round((totalFemme  * 100) / total) : 0
 
-    
+    if (error){
+        return(
+            <View style={styles.error}>
+                <TextComponent style={styles.errorTitle}>{error || 'Erreur lors de la récupération des stats'}</TextComponent>
+            </View>
+        )
+    }
     
     return(
         <>
@@ -59,7 +74,11 @@ export default function Setting(){
                     <TextComponent style={styles.tit}>Total d'étudiants</TextComponent>
                     <Icone nom={'users'} taille={18} color={'rgba(0,0,255,0.5)'} style={styles.icon}/>
                 </View>
-                <TextComponent style={styles.titt}>{total > 9 ? total : `0${total}`}</TextComponent>
+                <TextComponent style={styles.titt}>
+                    {loading ? (
+                        <Loader couleur={'rgba(0,0,255,0.5)'} taille={30}/>
+                    ): total > 9 ? total : `0${total}`}
+                </TextComponent>
                 <TextComponent style={styles.tittt}>inscrit{total > 1 ? 's' : ''}.</TextComponent>
             </View>
 
@@ -78,8 +97,12 @@ export default function Setting(){
                         <View style={styles.stattt}>
                             <TextComponent style={styles.statttt}>Homme</TextComponent>
                             <View style={styles.stattttt}>
-                                <TextComponent style={styles.staa}>{percentHomme}%</TextComponent>
-                                <TextComponent style={styles.staaa}>({totalHomme > 9 ? totalHomme : `0${totalHomme}`})</TextComponent>
+                                <TextComponent style={styles.staa}>({percentHomme}%)</TextComponent>
+                                <TextComponent style={styles.staaa}>
+                                    {loading ? (
+                                        <Loader couleur={'rgba(0,0,255,0.5)'} taille={15}/>
+                                    ):totalHomme > 9 ? totalHomme : `0${totalHomme}`}
+                                </TextComponent>
                             </View>
                         </View>
                     </View>
@@ -89,8 +112,12 @@ export default function Setting(){
                         <View style={styles.stattt}>
                             <TextComponent style={styles.statttt}>Femme</TextComponent>
                             <View style={styles.stattttt}>
-                                <TextComponent style={styles.staa}>{percentFemme}%</TextComponent>
-                                <TextComponent style={styles.staaa}>({totalFemme > 9 ? totalFemme : `0${totalFemme}`})</TextComponent>
+                                <TextComponent style={styles.staa}>({percentFemme}%)</TextComponent>
+                                <TextComponent style={styles.staaa}>
+                                    {loading ? (
+                                        <Loader couleur={'rgba(0,0,255,0.5)'} taille={15}/>
+                                    ):totalFemme > 9 ? totalFemme : `0${totalFemme}`}
+                                </TextComponent>
                             </View>
                         </View>
                     </View>
@@ -108,6 +135,15 @@ export default function Setting(){
 }
 
 const styles = StyleSheet.create({
+    error:{
+        flex:1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    errorTitle:{
+        color: '#f00',
+        fontWeight: '500'
+    },
     info:{
         alignItems: 'center',
         justifyContent: 'center',
